@@ -62,6 +62,8 @@ npm run dev
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+- `npm run verify-env` - Verify environment variables are configured
+- `npm run deploy:check` - Run all pre-deployment checks
 
 ## Project Structure
 
@@ -73,7 +75,36 @@ npm run dev
   /gemini              # Gemini AI integration
   /utils               # Helper functions
   /types               # TypeScript type definitions
+/scripts               # Deployment and utility scripts
 ```
+
+## Deployment
+
+Ready to deploy to production? We've got you covered:
+
+- 🚀 **Quick Start**: [QUICK_DEPLOY.md](./QUICK_DEPLOY.md) - 5-minute deployment guide
+- 📖 **Detailed Guide**: [DEPLOYMENT.md](./DEPLOYMENT.md) - Complete deployment documentation
+- ✅ **Checklist**: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - Step-by-step verification
+
+### Quick Deploy to Vercel
+
+1. Set up Supabase project and run `supabase-schema.sql`
+2. Get Google Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+3. Deploy to Vercel and add environment variables
+4. Configure authentication redirects in Supabase
+
+See [QUICK_DEPLOY.md](./QUICK_DEPLOY.md) for detailed steps.
+
+## Environment Variables
+
+Required environment variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `NEXT_PUBLIC_SITE_URL` - Your site URL (for OAuth redirects)
+- `GEMINI_API_KEY` - Your Google Gemini API key
+
+See `.env.example` for a complete template.
 
 ## License
 
