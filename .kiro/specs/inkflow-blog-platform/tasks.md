@@ -233,7 +233,9 @@
   - Implement conditional rendering based on auth state
   - _Requirements: 1.4, 1.5_
 
-- [-] 12. Configure deployment and environment
+- [x] 12. Configure deployment and environment
+
+
 
 
 
