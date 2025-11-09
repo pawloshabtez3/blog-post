@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify-env": "node scripts/verify-env.js",
+    "prebuild": "node scripts/verify-env.js",
+    "deploy:check": "npm run lint && npm run verify-env && npm run build"
   },
   "keywords": [],
   "author": "",
