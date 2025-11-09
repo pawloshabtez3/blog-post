@@ -1,0 +1,177 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
+import MarkdownEditor from '@/components/editor/MarkdownEditor'
+import { updatePost, getPostById } from '@/lib/actions/posts'
+import { Post } from '@/lib/types/database'
+
+export default function EditPostPage() {
+  const router = useRouter()
+  const params = useParams()
+  const postId = params.id as string
+
+  const [post, setPost] = useState<Post | null>(null)
+  const [title, setTitle] = useState('')
+  const [slug, setSlug] = useState('')
+  const [content, setContent] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    async function fetchPost() {
+      setIsLoading(true)
+      const result = await getPostById(postId)
+
+      if (result.success && result.data) {
+        setPost(result.data)
+        setTitle(result.data.title)
+        setSlug(result.data.slug)
+        setContent(result.data.content || '')
+      } else {
+        setErrors({ general: result.error || 'Failed to load post' })
+      }
+      setIsLoading(false)
+    }
+
+    fetchPost()
+  }, [postId])
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setErrors({})
+
+    const formData = new FormData()
+    formData.append('title', title)
+    formData.append('slug', slug)
+    formData.append('content', content)
+
+    const result = await updatePost(postId, formData)
+
+    if (result.success) {
+      router.push('/dashboard')
+    } else {
+      if (result.errors) {
+        setErrors(result.errors)
+      } else if (result.error) {
+        setErrors({ general: result.error })
+      }
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!post) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {errors.general || 'Post not found'}
+        </div>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="mt-4 px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Edit Post</h1>
+        <p className="mt-2 text-gray-600">
+          Update your blog post content
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {errors.general && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {errors.general}
+          </div>
+        )}
+
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            Title
+          </label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={`mt-1 block w-full px-3 py-2 border ${
+              errors.title ? 'border-red-300' : 'border-gray-300'
+            } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+            placeholder="Enter your post title"
+            required
+          />
+          {errors.title && (
+            <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+            URL Slug
+          </label>
+          <input
+            type="text"
+            id="slug"
+            name="slug"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            className={`mt-1 block w-full px-3 py-2 border ${
+              errors.slug ? 'border-red-300' : 'border-gray-300'
+            } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+            placeholder="url-friendly-slug"
+            required
+          />
+          {errors.slug && (
+            <p className="mt-1 text-sm text-red-600">{errors.slug}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            Changing the slug will change the post URL
+          </p>
+        </div>
+
+        <MarkdownEditor
+          initialContent={content}
+          onChange={setContent}
+        />
+
+        <div className="flex gap-4">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard')}
+            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
