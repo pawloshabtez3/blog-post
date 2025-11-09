@@ -220,7 +220,12 @@
   - Add try-catch blocks with proper error logging in API routes
   - _Requirements: 1.3, 3.5, 4.3, 7.3, 7.5_
 
-- [ ] 11. Add root layout and landing page
+- [x] 11. Add root layout and landing page
+
+
+
+
+
   - Create root layout with AuthProvider (app/layout.tsx)
   - Build navigation component with login/logout links
   - Create landing page with hero section and CTA (app/page.tsx)
