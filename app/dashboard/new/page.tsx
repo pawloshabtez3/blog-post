@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import MarkdownEditor from '@/components/editor/MarkdownEditor'
 import { createPost, generateSlug } from '@/lib/actions/posts'
+import { validateField } from '@/lib/utils/validation'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -26,14 +27,74 @@ export default function NewPostPage() {
   }, [title, isSlugManuallyEdited])
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSlug(e.target.value)
+    const newSlug = e.target.value
+    setSlug(newSlug)
     setIsSlugManuallyEdited(true)
+    
+    // Clear slug error on change
+    if (errors.slug) {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.slug
+        return newErrors
+      })
+    }
+  }
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value
+    setTitle(newTitle)
+    
+    // Clear title error on change
+    if (errors.title) {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.title
+        return newErrors
+      })
+    }
+  }
+
+  const handleTitleBlur = () => {
+    const validation = validateField('title', title)
+    if (!validation.isValid && validation.error) {
+      setErrors((prev) => ({ ...prev, title: validation.error! }))
+    }
+  }
+
+  const handleSlugBlur = () => {
+    const validation = validateField('slug', slug)
+    if (!validation.isValid && validation.error) {
+      setErrors((prev) => ({ ...prev, slug: validation.error! }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setErrors({})
+
+    // Client-side validation
+    const titleValidation = validateField('title', title)
+    const slugValidation = validateField('slug', slug)
+    const contentValidation = validateField('content', content)
+
+    const validationErrors: Record<string, string> = {}
+    if (!titleValidation.isValid && titleValidation.error) {
+      validationErrors.title = titleValidation.error
+    }
+    if (!slugValidation.isValid && slugValidation.error) {
+      validationErrors.slug = slugValidation.error
+    }
+    if (!contentValidation.isValid && contentValidation.error) {
+      validationErrors.content = contentValidation.error
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      setIsSubmitting(false)
+      return
+    }
 
     const formData = new FormData()
     formData.append('title', title)
@@ -77,7 +138,8 @@ export default function NewPostPage() {
             id="title"
             name="title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={handleTitleChange}
+            onBlur={handleTitleBlur}
             className={`mt-1 block w-full px-3 py-2 border ${
               errors.title ? 'border-red-300' : 'border-gray-300'
             } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
@@ -99,6 +161,7 @@ export default function NewPostPage() {
             name="slug"
             value={slug}
             onChange={handleSlugChange}
+            onBlur={handleSlugBlur}
             className={`mt-1 block w-full px-3 py-2 border ${
               errors.slug ? 'border-red-300' : 'border-gray-300'
             } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
@@ -116,6 +179,7 @@ export default function NewPostPage() {
         <MarkdownEditor
           initialContent={content}
           onChange={setContent}
+          onTitleChange={setTitle}
         />
 
         <div className="flex gap-4">

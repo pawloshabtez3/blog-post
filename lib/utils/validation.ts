@@ -5,6 +5,11 @@ export interface ValidationResult {
   errors: Record<string, string>
 }
 
+export interface FieldValidation {
+  isValid: boolean
+  error: string | null
+}
+
 /**
  * Validates post title
  * @param title - The title to validate
@@ -86,4 +91,68 @@ export function validatePostInputs(
     isValid: Object.keys(errors).length === 0,
     errors,
   }
+}
+
+/**
+ * Real-time field validation for client-side forms
+ * @param field - The field name
+ * @param value - The field value
+ * @returns Field validation result
+ */
+export function validateField(field: string, value: string | null): FieldValidation {
+  let error: string | null = null
+
+  switch (field) {
+    case 'title':
+      error = validateTitle(value || '')
+      break
+    case 'slug':
+      error = validateSlug(value || '')
+      break
+    case 'content':
+      error = validateContent(value)
+      break
+    default:
+      error = null
+  }
+
+  return {
+    isValid: error === null,
+    error,
+  }
+}
+
+/**
+ * Validates email format
+ * @param email - The email to validate
+ * @returns Validation error message or null if valid
+ */
+export function validateEmail(email: string): string | null {
+  if (!email || email.trim().length === 0) {
+    return 'Email is required'
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailPattern.test(email)) {
+    return 'Please enter a valid email address'
+  }
+
+  return null
+}
+
+/**
+ * Validates password strength
+ * @param password - The password to validate
+ * @returns Validation error message or null if valid
+ */
+export function validatePassword(password: string): string | null {
+  if (!password || password.length === 0) {
+    return 'Password is required'
+  }
+
+  if (password.length < 8) {
+    return 'Password must be at least 8 characters long'
+  }
+
+  return null
 }
